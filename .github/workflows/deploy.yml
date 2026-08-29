@@ -1,0 +1,51 @@
+# Build the site on every push to main and publish it to GitHub Pages.
+#
+# The build is the ordinary `npm run build` — `vite.config.ts` sets `base: './'`,
+# so the same output runs from a domain root or from the /Tinkertype/ subpath
+# Pages serves it under. Nothing here is Pages-specific except the upload.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The deploy job needs to write a Pages deployment and mint an id-token for it.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never two deployments at once; a queued one replaces the waiting one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The tests are cheap (about 3s) and they guard the geometry and the
+      # sound tables — a broken build should not reach the site.
+      - run: npm test
+      - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
