@@ -78,6 +78,16 @@ const en = {
   exportSolid:
     'The sheet as a solid, about 200mm on its long side — a real sprue. Parts, frames and gates all arrive; OBJ carries no colour, so the two plastics come out as one object to paint.',
   exportFlat: 'Parts, gates and frames come out as paths. Plate labels stay live text.',
+  /*
+   * The PNG says something different in each form, and the difference is worth a
+   * line: in the solid form the file carries the angle you orbited to, where the
+   * model file carries no camera at all.
+   */
+  exportPngSolid:
+    'The PNG is this view, from where you have put the camera, about 2400px on its long side.',
+  exportPngFlat:
+    'The PNG is the same drawing at about 2400px on its long side, ground included.',
+  viewNotReady: 'The view is not ready',
 
   /** Stage. */
   loading: 'Loading outlines…',
@@ -161,6 +171,9 @@ const ko: Copy = {
   exportSolid:
     '사출 판을 입체로, 긴 변 약 200mm — 실제 스프루 하나다. 부품·프레임·게이트가 모두 따라간다. OBJ는 색을 싣지 않으므로 두 가지 플라스틱이 칠할 하나의 오브젝트로 나온다.',
   exportFlat: '부품·게이트·프레임이 패스로 나온다. 명판의 글자는 살아 있는 텍스트로 남는다.',
+  exportPngSolid: 'PNG는 지금 이 시점 그대로다 — 카메라를 둔 자리까지. 긴 변 약 2400px.',
+  exportPngFlat: 'PNG는 같은 그림을 긴 변 약 2400px로 굽는다. 지면 색까지 들어간다.',
+  viewNotReady: '아직 그려지지 않았다',
 
   loading: '윤곽선 불러오는 중…',
   loadingRenderer: '렌더러 불러오는 중…',

@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { ChoiceRow, Group, Note, Scrub, Swatch, Switch } from '../../shared/ui/controls'
 import { DownloadIcon } from '../../shared/ui/icons'
 import { exportSvg } from '../../shared/export/svg'
+import { saveBlob } from '../../shared/export/download'
+import { exportPng, PNG_LONG_SIDE } from '../../shared/export/png'
+import { captureLive } from './render/live'
 import { HOME_HREF } from '../../app/router'
 import { useStore } from './store'
 import { CycleIcon, FlatIcon, MonoIcon, SolidIcon } from './icons'
@@ -89,7 +92,7 @@ export function Panel() {
   const site = useCopy(SITE)
   const lang = useLang()
 
-  const [exporting, setExporting] = useState(false)
+  const [exporting, setExporting] = useState<'file' | 'png' | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   // The panel needs the face only to export a model — the stage loads it anyway
@@ -110,7 +113,7 @@ export function Panel() {
    * `render/Stage.tsx` draws for the stage.
    */
   async function handleExport() {
-    setExporting(true)
+    setExporting('file')
     setError(null)
     try {
       if (!doc.solid) {
@@ -127,7 +130,37 @@ export function Panel() {
     } catch (e) {
       setError(e instanceof Error ? e.message : c.exportFailed)
     } finally {
-      setExporting(false)
+      setExporting(null)
+    }
+  }
+
+  /**
+   * The same picture, as pixels.
+   *
+   * Both forms can hand one over, and they get there differently because they are
+   * drawn differently: the flat sheet is rasterised from the very SVG string the
+   * vector export writes, and the solid one is the renderer asked to draw its own
+   * view again at export size. **In the solid form that means the angle is part
+   * of the file** — a PNG is a photograph of the view, where the OBJ is the
+   * object and carries no camera at all.
+   */
+  async function handlePng() {
+    setExporting('png')
+    setError(null)
+    try {
+      // A tick so the button repaints before the drawing is rasterised.
+      await new Promise((done) => setTimeout(done, 0))
+      if (!doc.solid) {
+        await exportPng({ embedFont: false, filename: 'plastic-type.png' })
+      } else {
+        const shot = await captureLive(PNG_LONG_SIDE, doc.background)
+        if (!shot) throw new Error(c.viewNotReady)
+        saveBlob(shot, 'plastic-type.png')
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : c.exportFailed)
+    } finally {
+      setExporting(null)
     }
   }
 
@@ -511,17 +544,30 @@ export function Panel() {
         <button
           type="button"
           className="export-btn"
-          disabled={exporting || (doc.solid && !face)}
+          disabled={exporting !== null || (doc.solid && !face)}
           onClick={handleExport}
         >
           <DownloadIcon />
-          <span>{exporting ? c.working : doc.solid ? 'OBJ' : 'SVG'}</span>
+          <span>{exporting === 'file' ? c.working : doc.solid ? 'OBJ' : 'SVG'}</span>
+        </button>
+        {/* Second, and deliberately below: the file this tool is for is the one
+            you can keep working on — an editable sheet or a model. The PNG is the
+            one you can send. */}
+        <button
+          type="button"
+          className="export-btn"
+          disabled={exporting !== null}
+          onClick={handlePng}
+        >
+          <DownloadIcon />
+          <span>{exporting === 'png' ? c.working : 'PNG'}</span>
         </button>
         {doc.solid ? (
           <Note>{c.exportSolid}</Note>
         ) : (
           <Note>{c.exportFlat}</Note>
         )}
+        <Note>{doc.solid ? c.exportPngSolid : c.exportPngFlat}</Note>
         {error && <Note>{error}</Note>}
       </Group>
     </aside>

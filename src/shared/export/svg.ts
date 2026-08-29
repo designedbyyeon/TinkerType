@@ -1,4 +1,5 @@
 import fontUrl from '../media/fonts/PretendardVariable.woff2?url'
+import { saveBlob } from './download'
 
 function toBase64(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer)
@@ -60,16 +61,5 @@ export async function buildSvgString({ embedFont }: ExportOptions): Promise<stri
 
 export async function exportSvg(options: ExportOptions): Promise<void> {
   const svg = await buildSvgString(options)
-  const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-
-  const a = document.createElement('a')
-  a.href = url
-  a.download = options.filename
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-
-  // Give the browser a tick to start the download before revoking.
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  saveBlob(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }), options.filename)
 }

@@ -17,9 +17,11 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { pngScale } from '../../../shared/export/png'
 import type { RunnerPlan, RunnerStyle } from '../geometry/runner'
 import type { PlasticDoc } from '../types'
 import { buildSolid } from './build'
+import { setLiveCapture } from './live'
 
 /**
  * The sheet as a moulded object, live.
@@ -78,6 +80,8 @@ interface Rig {
   draw: () => void
   /** The zoom a fit last asked for, so a hand-held zoom survives a rebuild. */
   fitted: { zoom: number }
+  /** What is on the stage, so a resize can re-frame it. */
+  bounds: Box3 | null
 }
 
 const directionOf = (azimuth: number, elevation: number) => {
@@ -203,6 +207,7 @@ export function SolidView({ plan, style, doc }: SolidViewProps) {
       sun,
       draw,
       fitted: { zoom: 0 },
+      bounds: null,
     }
 
     const resize = () => {
@@ -215,12 +220,70 @@ export function SolidView({ plan, style, doc }: SolidViewProps) {
       camera.top = h / 2
       camera.bottom = -h / 2
       camera.updateProjectionMatrix()
+      /*
+       * Re-frame, not just re-shape. The frustum is the viewport in pixels, so a
+       * new window changes what fits — and `frame` keeps the angle and the
+       * hand-held zoom while it refits, which is the same thing it does when the
+       * document changes. Without this the sheet keeps whatever zoom it was
+       * given at the size it first mounted at, and a stage that was one pixel
+       * wide for a frame leaves it there for good.
+       */
+      if (rig.bounds) frame(rig, rig.bounds)
       draw()
     }
     resize()
 
     const observer = new ResizeObserver(resize)
     observer.observe(node)
+
+    /*
+     * A photograph of the view, at export size.
+     *
+     * Rendered again at a higher pixel ratio rather than scaled up from the
+     * screen — the whole picture, chamfer highlights and contact shadows
+     * included, is resolution-dependent, and an enlarged screenshot of it is a
+     * blurred one. `preserveDrawingBuffer` is on for exactly this.
+     *
+     * **The ground is painted here.** The canvas is transparent so the site's
+     * paper can show through it (see above); a file with a transparent hole
+     * where the paper was would be a different picture from the one on screen.
+     */
+    setLiveCapture(async (longSide, background) => {
+      const w = Math.max(1, node.clientWidth)
+      const h = Math.max(1, node.clientHeight)
+      const base = renderer.getPixelRatio()
+      const scale = pngScale(w, h, longSide)
+
+      renderer.setPixelRatio(scale)
+      renderer.setSize(w, h)
+      composer.setPixelRatio(scale)
+      composer.render()
+
+      const shot = document.createElement('canvas')
+      shot.width = renderer.domElement.width
+      shot.height = renderer.domElement.height
+      const ctx = shot.getContext('2d')
+      if (ctx) {
+        if (background && background !== 'none') {
+          ctx.fillStyle = background
+          ctx.fillRect(0, 0, shot.width, shot.height)
+        }
+        ctx.drawImage(renderer.domElement, 0, 0)
+      }
+
+      // Back to the screen's own resolution, and redraw at it.
+      renderer.setPixelRatio(base)
+      renderer.setSize(w, h)
+      composer.setPixelRatio(base)
+      composer.render()
+
+      return new Promise<Blob>((done, fail) => {
+        shot.toBlob(
+          (blob) => (blob ? done(blob) : fail(new Error('The image could not be encoded'))),
+          'image/png',
+        )
+      })
+    })
 
     /*
      * The rig, for the console. The only thing about this tool that cannot be
@@ -238,6 +301,7 @@ export function SolidView({ plan, style, doc }: SolidViewProps) {
 
     return () => {
       setRig(null)
+      setLiveCapture(null)
       if (import.meta.env.DEV && typeof window !== 'undefined') {
         delete (window as unknown as { __plasticSolid?: Rig }).__plasticSolid
       }
@@ -263,10 +327,12 @@ export function SolidView({ plan, style, doc }: SolidViewProps) {
     holder.add(solid.group)
     rig.scene.add(holder)
 
+    rig.bounds = solid.bounds
     frame(rig, solid.bounds)
     rig.draw()
 
     return () => {
+      rig.bounds = null
       rig.scene.remove(holder)
       solid.dispose()
     }
@@ -341,8 +407,19 @@ function frame(rig: Rig, bounds: Box3): void {
     maxY = Math.max(maxY, corner.y)
   }
 
-  const w = Math.max(1, node.clientWidth)
-  const h = Math.max(1, node.clientHeight)
+  /*
+   * A stage with no size yet is not a fit worth recording.
+   *
+   * A view can mount before the browser has laid it out, and for that one frame
+   * the node is a pixel wide. Fitting to it hands the camera a zoom of a
+   * thousandth — the sheet is drawn, correctly, far too small to see — and since
+   * nothing refits afterwards it stays there. Leaving the zoom alone until there
+   * is a real size to fit to costs one frame of a stale view.
+   */
+  const w = node.clientWidth
+  const h = node.clientHeight
+  if (w < 2 || h < 2) return
+
   const fit =
     Math.min(w / Math.max(1e-3, maxX - minX), h / Math.max(1e-3, maxY - minY)) * FILL
   // Their zoom, as a factor of the fit it was made against. On the opening frame
