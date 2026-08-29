@@ -1,0 +1,513 @@
+/* The shell: two columns, a scrolling control rail, and a full-bleed stage. */
+
+.app {
+  display: grid;
+  grid-template-columns: 296px 1fr;
+  /* An explicit row keeps the poster's intrinsic height from stretching the
+     grid past the viewport, so max-height on the artwork has a target. */
+  grid-template-rows: 100%;
+  height: 100%;
+}
+
+/* ----------------------------------------------------------------- panel */
+
+.panel {
+  background: var(--paper);
+  border-right: 1px solid var(--rule-strong);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.panel::-webkit-scrollbar {
+  width: 9px;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: var(--rule-strong);
+  border: 3px solid var(--paper);
+  border-radius: 5px;
+}
+
+.stage {
+  /* Relative, so a tool that puts anything over its stage — a status line, a
+     shutter, a camera feed behind the artwork — has a frame to position against. */
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  transition: background 0.15s;
+}
+
+/* ----------------------------------------------------------------- index */
+
+/* Every tool names itself at the top of its panel, and the name is the way
+   back out to the index. Shared here rather than in one tool's sheet — the
+   second tool is where that became obvious. */
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.wordmark {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: 0.02em;
+  color: inherit;
+  text-decoration: none;
+}
+
+.wordmark:hover {
+  color: var(--accent);
+}
+
+/* The right-hand column of the masthead: the tool's own reading, and under it
+   the site's language. Stacked rather than set side by side — the meta is a fact
+   about this document and the switch is a fact about the reader, and putting
+   them on one line would read as two halves of one label. */
+.masthead-side,
+.rail-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+}
+
+/* Not translated: these are the tool's own tag, set in the same mono as the
+   numerals. A word that names the tool is closer to the wordmark than to a
+   label. */
+.masthead-meta {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+}
+
+/* Language ------------------------------------------------------------ */
+
+/* Two buttons and a slash, at the meta size. The current one is ink and the
+   other is muted — no accent: accent means "live under your hand", and a
+   language is a standing fact, not a gesture. */
+.lang-switch {
+  display: flex;
+  align-items: baseline;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+}
+
+.lang-switch span {
+  display: flex;
+  align-items: baseline;
+}
+
+.lang-switch i {
+  padding: 0 4px;
+  font-style: normal;
+  color: var(--rule-strong);
+}
+
+.lang-switch button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--ink-mute);
+  transition: color 0.12s;
+}
+
+.lang-switch button:hover {
+  color: var(--ink);
+}
+
+.lang-switch button.is-active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Whatever a tool has to say out loud — a face still loading, a letter the face
+   does not have, a line that would not fit. One line, bottom left, out of the
+   artwork's way, and never in the way of a pointer.
+
+   Here rather than in a tool's sheet because all three tools use it. It lived in
+   tool 02's sheet and the other two were quietly borrowing it, which only worked
+   because `main.tsx` loads every sheet — a dependency that would have broken the
+   first time a tool was loaded on its own. */
+.stage-status {
+  position: absolute;
+  bottom: 18px;
+  left: 20px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  pointer-events: none;
+}
+
+/* A tool's own instrument controls, over the stage where the eyes already are.
+
+   Tool 04 switches a camera on from here and tool 05 starts its transport from
+   here, and both do it on the stage rather than at the foot of the rail for the
+   same reason: **an empty stage is the thing that has to say what to do next.**
+   For tool 05 there is a second reason — an `AudioContext` will not start
+   without a gesture, so this button *is* that gesture.
+
+   Shared here rather than in a tool's sheet because two tools wear it. It was
+   `.magic-deck`/`.magic-chip` in tool 04's sheet, and leaving it there while tool
+   05 used it is exactly the accident `.stage-status` was: every sheet is loaded
+   by `main.tsx`, so a borrowed class works by luck until a tool is loaded alone.
+
+   Held clear of the bottom left corner rather than sitting on it: the status line
+   lives down there and can run to two lines on a narrow window, and a control
+   with a sentence printed through it is worse than one set a little high. */
+.stage-deck {
+  position: absolute;
+  bottom: 54px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.stage-chip {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 14px;
+  border: 1px solid var(--rule-strong);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.stage-chip:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.stage-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* The one chip that is the point of the stage — turn the camera on, start the
+   loop. Filled, so it reads as the thing to press. */
+.stage-chip.is-primary {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.stage-chip.is-primary:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* The index is the tools' own split, rehearsed: a stage and a rail. */
+.bench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 316px;
+  grid-template-rows: 100%;
+  height: 100%;
+  background: var(--paper);
+}
+
+.bench-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  min-height: 0;
+  padding: 40px 36px 44px;
+  border-right: 1px solid var(--rule);
+  overflow-y: auto;
+}
+
+.bench-view {
+  flex: 1;
+  min-height: 220px;
+  background: var(--paper-sunk);
+  overflow: hidden;
+}
+
+.bench-view svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bench-name {
+  margin: 8px 0 0;
+  font-size: clamp(26px, 3.4vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.bench-blurb {
+  margin: 0;
+  max-width: 58ch;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-mute);
+}
+
+.bench-spec {
+  display: flex;
+  flex-direction: column;
+  margin: 6px 0 0;
+  max-width: 520px;
+}
+
+.bench-spec div {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.bench-spec dt {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.bench-spec dd {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink);
+}
+
+/* Rail ---------------------------------------------------------------- */
+
+.bench-rail {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 26px 0 20px;
+  overflow-y: auto;
+}
+
+.rail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 24px 18px;
+}
+
+.rail-mark {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: 0.02em;
+}
+
+.rail-count {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.rail-lede {
+  margin: 0 24px 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-mute);
+}
+
+.rail-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Plain type at rest. The current item grows a dimension leader that runs out
+   of the rail toward the stage it is driving — the one thing a rail beside a
+   stage has to say. */
+.rail-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: baseline;
+  padding: 13px 24px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.rail-n {
+  font-family: var(--mono);
+  font-size: 10px;
+  text-align: right;
+  color: var(--rule-strong);
+}
+
+.rail-t {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--ink-mute);
+}
+
+.rail-item:hover {
+  padding-left: 44px;
+}
+
+.rail-item:hover .rail-t {
+  color: var(--ink);
+}
+
+.rail-item:hover::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 24px;
+  width: 12px;
+  height: 1px;
+  background: var(--rule-strong);
+}
+
+.rail-item.is-current {
+  padding-left: 44px;
+}
+
+.rail-item.is-current .rail-t {
+  color: var(--ink);
+}
+
+.rail-item.is-current .rail-n {
+  color: var(--accent);
+}
+
+.rail-item.is-current::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -1px;
+  width: 38px;
+  height: 1px;
+  background: var(--accent);
+}
+
+/* The solid tick that terminates the leader, sitting on the rail's own edge. */
+.rail-item.is-current::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  width: 5px;
+  height: 5px;
+  margin-top: -2px;
+  background: var(--accent);
+}
+
+.rail-item:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.rail-foot {
+  display: grid;
+  gap: 3px;
+  margin-top: auto;
+  padding: 18px 24px 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+@media (max-width: 820px) {
+  .bench {
+    grid-template-columns: 100%;
+    grid-template-rows: auto auto;
+    height: auto;
+    min-height: 100%;
+  }
+
+  .bench-stage {
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 26px 22px 30px;
+  }
+
+  .bench-view {
+    min-height: 260px;
+  }
+
+  .bench-rail {
+    overflow: visible;
+  }
+}
+
+/* Korean ------------------------------------------------------------- */
+
+/* The shell's half of the rule written out in `controls.css`: anything set in
+   `--mono` that can hold a Korean word moves to `--ui` and drops its tracking,
+   because no monospaced stack carries Hangul and the fallback would arrive at a
+   different size and weight from the Latin around it.
+
+   What stays in mono is the half that is not language: the tool's own tag, the
+   object count, the numerals, the file formats, `SPACE`. */
+:root[data-lang='ko'] :is(.stage-status, .stage-chip, .bench-spec dt, .bench-spec dd, .rail-count, .rail-foot) {
+  font-family: var(--ui);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-lang='ko'] .stage-status {
+  font-size: 11px;
+}
+
+:root[data-lang='ko'] .stage-chip {
+  font-size: 11px;
+}
+
+:root[data-lang='ko'] :is(.bench-spec dt, .rail-count) {
+  font-size: 10.5px;
+}
+
+/* The colophon stays quiet: it is a list of names, and it should not gain weight
+   for being read in Korean. */
+:root[data-lang='ko'] .rail-foot {
+  font-size: 9.5px;
+}
+
+:root[data-lang='ko'] .bench-spec dd {
+  font-size: 11.5px;
+}
+
+/* Hangul at this size needs the extra leading; a 58ch measure set for Latin is
+   also too wide for it, since a syllable carries more of a word than a letter. */
+:root[data-lang='ko'] .bench-blurb {
+  max-width: 44ch;
+  line-height: 1.75;
+}
+
+:root[data-lang='ko'] .rail-lede {
+  line-height: 1.8;
+}

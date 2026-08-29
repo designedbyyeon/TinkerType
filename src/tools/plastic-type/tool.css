@@ -1,0 +1,74 @@
+/* Plastic Type — only what this tool adds to the shared control language. */
+
+.artwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+}
+
+/* The solid form's canvas. Fills the stage the same way the artwork does — no
+   artboard, no page format, and the ground it sits on is the stage's own so the
+   colour never goes through the tone mapper. */
+.plastic-view {
+  width: 100%;
+  height: 100%;
+}
+
+/* The words are the first thing set, so the field is a little taller than a
+   single line and reads as a place to type rather than as a value. */
+.plastic-text {
+  width: 100%;
+  min-height: 52px;
+  margin-bottom: 12px;
+  padding: 8px 9px;
+  font-size: 13px;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+.export-btn {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.export-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Face names are words, not one-syllable labels, and "Big Shoulders" plus its
+   two neighbours already overrun a 296px rail if the label sits beside them. So
+   this one row puts its label above and lets the options wrap.
+
+   Left-aligned, unlike every other choice row. There are two of these rows now —
+   one script each — and right-aligning them would leave the shorter bank
+   floating away from the longer one, which reads as two unrelated rows rather
+   than as one choice with two banks. */
+.choice.is-faces {
+  display: block;
+}
+
+.choice.is-faces .choice-label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.choice.is-faces .choice-options {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}

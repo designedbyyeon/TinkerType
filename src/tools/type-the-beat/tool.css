@@ -1,0 +1,78 @@
+/* Tool 05 — Type the Beat.
+   The canvas fills the stage: no artboard edge, no page format. */
+
+.beat-stage .artwork {
+  width: 100%;
+  height: 100%;
+}
+
+/* The kit rows. The options are strings of jamo, which will not sit side by side in
+   a 296px rail — so they stack full width and the row reads as a short menu rather
+   than as cramped buttons.
+
+   The jamo are the **content** of the option, not a label for it, which is why they
+   are set at reading size. Rule nine: screen language is English, but a letter is
+   not language here — it is the thing on the wheel. */
+.choice.is-kits {
+  display: block;
+  padding: 5px 0 2px;
+}
+
+.choice.is-kits .choice-label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.choice.is-kits .choice-options {
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 3px;
+}
+
+.choice.is-kits .choice-options button {
+  justify-content: flex-start;
+  /* The jamo are the content of the option, so they are set at reading size and
+     given room — the point of the row is to see what is on the wheel.
+
+     Big enough matters more than it sounds. At label size the selected option came
+     out as a black bar with specks in it, which reads as a redaction rather than as
+     a wheel; the letters have to carry the fill. */
+  padding: 7px 11px;
+  font-size: 15px;
+  line-height: 1.15;
+  letter-spacing: 0.12em;
+}
+
+/* How full the machine is, beside the transport. The clock's own read-out is on
+   the artwork, at the top of the bar — where the references put it. */
+.beat-lanes {
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  white-space: nowrap;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  color: var(--ink-mute);
+}
+
+/* The clock, small at the top right of the bar. In the artwork rather than in the
+   chrome because it is part of the instrument's face. */
+.beat-meta {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  opacity: 0.45;
+}
+
+.beat-preview {
+  width: 100%;
+  height: 100%;
+}
+
+/* Korean. The bar's own clock (`.beat-meta`) is left alone — it is numerals. */
+:root[data-lang='ko'] .beat-lanes {
+  font-family: var(--ui);
+  font-size: 11px;
+  letter-spacing: 0;
+}

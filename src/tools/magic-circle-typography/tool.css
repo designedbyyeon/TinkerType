@@ -1,0 +1,205 @@
+/* Magic Circle — only what this tool adds to the shared control language.
+
+   Almost all of it is one thing the other three tools never needed: an
+   instrument sitting over the artwork. A lens, a read-out, a shutter. They keep
+   the panel's own voice — fixed-pitch capitals at ten pixels, one hairline, one
+   accent for the thing that is currently live — so the stage reads as the same
+   machine as the rail rather than as a video app bolted to it. */
+
+.artwork {
+  display: block;
+  /* Above the feed, and stacked rather than floated so it still drives the
+     stage's own size. */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+}
+
+/* The feed sits behind the artwork, cover-fitted — which is the same fit the
+   landmark mapping assumes, so a point in the image lands where the hand is. */
+.magic-feed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.magic-feed.is-mirrored {
+  transform: scaleX(-1);
+}
+
+.magic-text {
+  width: 100%;
+  min-height: 66px;
+  margin-bottom: 8px;
+  padding: 8px 9px;
+  font-size: 13px;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+/* The mark set between repeats. A parameter row like any other, so it borrows
+   the Scrub's own metrics — the group already supplies the side padding, and a
+   row that added its own would sit a quarter-inch in from every label above it. */
+.magic-joiner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+  align-items: center;
+  padding: 7px 0 10px;
+}
+
+.magic-joiner .swatch-hex {
+  width: 46px;
+  text-align: center;
+}
+
+/* Read-out ----------------------------------------------------------- */
+
+/* Top left, opposite the status line, and only while the lens is open. Four
+   figures: what the hand is doing, how far it has opened, and the radius that
+   comes out of it — the three numbers you would want to see while performing. */
+.magic-hud {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid var(--rule-strong);
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  pointer-events: none;
+}
+
+.magic-grip {
+  min-width: 58px;
+  color: var(--ink-mute);
+}
+
+/* The accent means "this is the state you are in", the same as everywhere else
+   in the interface. A fully open hand is the one that finishes the plate, so
+   that is the one it marks. */
+.magic-grip.is-open {
+  color: var(--accent);
+}
+
+.magic-grip.is-opening,
+.magic-grip.is-fist {
+  color: var(--ink);
+}
+
+.magic-meter {
+  display: block;
+  width: 54px;
+  height: 3px;
+  background: var(--rule);
+}
+
+.magic-meter span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transition: width 0.06s linear;
+}
+
+.magic-figure {
+  min-width: 34px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Deck --------------------------------------------------------------- */
+
+/* The row itself and the plain chips are in `app/app.css` as `.stage-deck` and
+   `.stage-chip` — tool 05's transport is the same object, a row of device
+   switches floating over the stage, and two consumers is when a thing moves. See
+   the note there. What is left here is the shutter, which only this tool has. */
+
+/* The shutter is the one live control on the stage, so it is the one thing that
+   wears the accent. */
+.magic-shutter {
+  /* Same box as a `.stage-chip`, stated rather than borrowed — the two are
+     side by side in the deck and have to agree, and the alternative is tool 04
+     quietly depending on a shared class it does not wear. */
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 14px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.magic-shutter:hover {
+  border-color: var(--ink);
+  background: var(--ink);
+}
+
+/* The key it is on, set back from its own label the way a menu sets a shortcut. */
+.magic-shutter em {
+  font-style: normal;
+  opacity: 0.7;
+}
+
+.magic-cue {
+  position: absolute;
+  bottom: 104px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Face names overrun a 296px rail if the label sits beside them, so this one row
+   puts its label above and lets the options wrap. The same row in tool 02. */
+.choice.is-faces {
+  display: block;
+}
+
+.choice.is-faces .choice-label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.choice.is-faces .choice-options {
+  flex-wrap: wrap;
+}
+
+/* Korean: mono carries no Hangul, so the three overlays that can hold a Korean
+   word move to `--ui`. The figures inside the HUD stay mono — they are numbers. */
+:root[data-lang='ko'] :is(.magic-hud, .magic-shutter, .magic-cue) {
+  font-family: var(--ui);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-lang='ko'] .magic-figure {
+  font-family: var(--mono);
+  letter-spacing: 0.09em;
+}
+
+/* `SPACE` is the name of a key. It does not translate, and it stays mono. */
+:root[data-lang='ko'] .magic-shutter em {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.09em;
+}

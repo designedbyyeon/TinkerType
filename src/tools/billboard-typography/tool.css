@@ -1,0 +1,19 @@
+/* Tool 03 — Billboard Typography.
+   The canvas fills the stage: no artboard edge, no page format. */
+
+.billboard-stage {
+  position: relative;
+}
+
+.billboard-card,
+.billboard-view,
+.billboard-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.billboard-text {
+  /* Hangul at a readable size in the field. The line is the whole document, so
+     it is worth more room than a label's worth of type. */
+  line-height: 1.5;
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- The dimension leader the index rail uses to mark what the stage is
+       showing: an accent hairline running into a solid tick. It belongs to the
+       site rather than to either tool, which is the whole requirement — a mark
+       shaped like one tool's output would make every later tool wear its face.
+       Two solid shapes and no hairlines, so it still reads at 16px. -->
+  <rect width="32" height="32" fill="#f4f3f0"/>
+  <rect x="5" y="15" width="13" height="2" fill="#ff4a12"/>
+  <rect x="20" y="8" width="4" height="16" fill="#14140f"/>
+</svg>

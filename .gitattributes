@@ -1,2 +1,14 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Binary assets — never line-ending normalized
+*.ttf   binary
+*.TTF   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.wasm  binary
+*.task  binary
+*.png   binary
+*.jpg   binary
+*.webp  binary

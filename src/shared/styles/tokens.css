@@ -1,0 +1,54 @@
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-style: normal;
+  font-weight: 45 920;
+  font-display: block;
+  src: url('../media/fonts/PretendardVariable.woff2') format('woff2');
+}
+
+:root {
+  /* Warm paper, near-black ink, hairlines. One accent, used only to mark
+     what is currently active — never for decoration. */
+  --paper: #f4f3f0;
+  --paper-sunk: #eceae4;
+  --ink: #14140f;
+  --ink-mute: #8a877c;
+  --rule: #d3d0c7;
+  --rule-strong: #b6b2a6;
+  --accent: #ff4a12;
+
+  --ui: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+  /* No monospaced stack carries Hangul, so anything set in this that might hold
+     Korean is switched to --ui under [data-lang='ko']. What stays here is the
+     half that never translates: numerals, units, and file formats. */
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
+
+  color-scheme: light;
+  font-family: var(--ui);
+  font-size: 13px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+

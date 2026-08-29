@@ -1,0 +1,547 @@
+/* Control primitives — the panel language, independent of any one tool. */
+
+.scope-label,
+.choice-label,
+.swatch-label,
+.scrub-label,
+.switch-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+/* Group ------------------------------------------------------------- */
+
+/* One hairline between sections, and nothing else drawn. Separation is space
+   and the weight of the title — a rule now only ever means "new section". */
+.group {
+  padding: 20px 16px 22px;
+}
+
+.group + .group {
+  border-top: 1px solid var(--rule);
+}
+
+.group-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* The panel is ordered as a making sequence, so the count is real wayfinding
+   rather than decoration. A CSS counter keeps it correct as sections move. */
+.panel {
+  counter-reset: group;
+}
+
+.group-head::before {
+  counter-increment: group;
+  content: counter(group, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+}
+
+.group-aside {
+  display: flex;
+  align-items: center;
+}
+
+.note {
+  margin: 8px 0 0;
+  font-size: 10.5px;
+  line-height: 1.55;
+  color: var(--ink-mute);
+}
+/* Scrub row — the workhorse control ---------------------------------- */
+
+.scrub {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px;
+  align-items: baseline;
+  padding: 7px 0 10px;
+  cursor: ew-resize;
+  user-select: none;
+  touch-action: none;
+}
+
+.scrub:hover .scrub-label,
+.scrub.is-live .scrub-label {
+  color: var(--ink);
+}
+
+.scrub-num {
+  position: relative;
+  display: block;
+  width: 54px;
+  padding-bottom: 6px;
+  transition: transform 0.18s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.scrub.is-live .scrub-num {
+  transition: none;
+}
+
+.scrub-value {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--ink);
+  cursor: text;
+}
+
+.scrub-value:focus {
+  outline: none;
+  color: var(--accent);
+}
+
+.scrub.is-emphasis .scrub-value {
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.scrub-unit {
+  width: 16px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--ink-mute);
+}
+
+/* Ridges only run the width of the numeral, so a dozen of them stack as a
+   column of grips rather than as a dozen rules across the panel. Horizontal
+   is the only direction they can mean. */
+.scrub-ridges {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  /* Drawn with currentColor so the hover state is one colour change rather
+     than a second copy of the gradient — and so a renamed token can never
+     silently invalidate the whole declaration. */
+  color: var(--rule-strong);
+  background-image: repeating-linear-gradient(
+    to right,
+    currentColor 0 1px,
+    transparent 1px 6px
+  );
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 30%, #000 70%, transparent);
+  transition: color 0.12s;
+}
+
+.scrub:hover .scrub-ridges,
+.scrub.is-live .scrub-ridges {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrub-num {
+    transition: none;
+  }
+}
+
+/* Choice rows -------------------------------------------------------- */
+
+.choice {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+}
+
+.choice.is-icons {
+  grid-template-columns: 1fr;
+  padding: 2px 0 8px;
+}
+
+.choice-options {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.choice.is-icons .choice-options {
+  justify-content: flex-start;
+}
+
+.choice-options button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 9px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  background: none;
+  font-size: 10.5px;
+  color: var(--ink-mute);
+}
+
+.choice.is-icons .choice-options button {
+  width: 34px;
+  height: 28px;
+  padding: 0;
+}
+
+.choice-options button:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.choice-options button.is-active {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* Swatch ------------------------------------------------------------- */
+
+.swatch {
+  display: grid;
+  grid-template-columns: 1fr 20px 68px 22px;
+  gap: 7px;
+  align-items: center;
+  padding: 5px 0;
+}
+
+.swatch-chip {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 2px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.swatch-slot {
+  display: block;
+  width: 22px;
+  height: 20px;
+}
+
+.swatch-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.swatch-chip input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.swatch-hex,
+.text-input {
+  padding: 4px 6px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper-sunk);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink);
+}
+
+.swatch-hex:focus,
+.text-input:focus {
+  outline: 1px solid var(--ink);
+  outline-offset: -1px;
+}
+
+.swatch-none {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 20px;
+  border: none;
+  background: none;
+  color: var(--rule-strong);
+}
+
+.swatch-none:hover {
+  color: var(--ink);
+}
+
+.swatch-none.is-active {
+  color: var(--ink);
+}
+
+.text-input {
+  width: 100%;
+  margin-bottom: 4px;
+  font-family: 'Pretendard Variable', sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
+/* Switch ------------------------------------------------------------- */
+
+.switch {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 7px 0;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.switch-track {
+  position: relative;
+  width: 28px;
+  height: 15px;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.switch-track.is-on {
+  border-color: var(--ink);
+  background: var(--ink);
+}
+
+.switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--rule-strong);
+  transition: transform 0.12s, background 0.12s;
+}
+
+.switch-track.is-on .switch-knob {
+  background: var(--paper);
+  transform: translateX(13px);
+}
+
+.switch-state {
+  width: 22px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--ink-mute);
+}
+
+/* Disclosure --------------------------------------------------------- */
+
+/* No rule here: inside a group a line would contradict the one meaning a
+   line now has. The chevron and the indent carry it instead. */
+.disclosure {
+  margin-top: 10px;
+}
+
+.disclosure-head {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0 2px;
+  border: none;
+  background: none;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.disclosure-head:hover {
+  color: var(--ink);
+}
+
+.disclosure-chevron {
+  transition: transform 0.12s;
+}
+
+.disclosure.is-open .disclosure-chevron {
+  transform: rotate(90deg);
+}
+
+.icon-btn:disabled {
+  color: var(--rule);
+  cursor: default;
+}
+/* Buttons ------------------------------------------------------------ */
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: var(--ink-mute);
+}
+
+.icon-btn:hover {
+  color: var(--accent);
+}
+
+.text-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.text-btn:hover {
+  color: var(--accent);
+}
+
+.export-btn {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: none;
+  border-radius: 2px;
+  background: var(--ink);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--paper);
+}
+
+.export-btn:hover:not(:disabled) {
+  background: var(--accent);
+}
+
+.export-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* Row marks --------------------------------------------------------- */
+
+/* A miniature of the thing a parameter changes, sitting beside its name. It
+   takes the label's colour, so it steps forward with the label on hover and
+   while dragging rather than competing for attention when idle. */
+.row-mark {
+  display: inline-flex;
+  align-items: center;
+  height: 14px;
+  margin-left: 9px;
+  /* Muted, not hairline: at this size --rule-strong reads as a smudge rather
+     than as a drawing, and a drawing nobody can read is decoration. */
+  color: var(--ink-mute);
+  transition: color 0.12s;
+}
+
+.row-mark svg {
+  display: block;
+  overflow: visible;
+}
+
+.scrub:hover .row-mark,
+.scrub.is-live .row-mark,
+.switch:hover .row-mark {
+  color: var(--ink);
+}
+
+.switch[aria-checked='true'] .row-mark {
+  color: var(--ink);
+}
+
+/* Both rows are label / value / unit grids. A mark adds a column between the
+   label and the value, and takes the flexible one so the value and unit stay
+   pinned right — scoped with :has() so rows without a mark keep their layout. */
+.scrub:has(.row-mark) {
+  grid-template-columns: auto 1fr auto auto;
+}
+
+.switch:has(.row-mark) {
+  grid-template-columns: auto 1fr auto auto;
+}
+
+.scrub:has(.row-mark) .row-mark,
+.switch:has(.row-mark) .row-mark {
+  justify-self: start;
+}
+
+/* Korean ------------------------------------------------------------- */
+
+/* One attribute on the root, and every label in the site re-sets.
+
+   **This is the whole cost of the second language, and it is a real one.** A
+   10px uppercase label tracked out 0.09em is what makes this panel an
+   instrument rather than a form — and every part of that is a Latin device.
+   Hangul has no case, so `uppercase` does nothing; and a syllable is a built
+   object, so tracking does not open a word out, it pulls the block apart.
+   Left alone, the Korean panel would read as a badly set copy of the English
+   one.
+
+   So the tone is carried the other way round: the label steps up a size and
+   sets tight, and **the instrument stays in the numerals**, which do not move.
+   Mono, tabular, right-aligned, with the ridges under them — that half of the
+   row is identical in both languages, because measurement is not a language. */
+:root[data-lang='ko'] :is(.scope-label, .choice-label, .swatch-label, .scrub-label, .switch-label) {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+:root[data-lang='ko'] .group-head {
+  font-size: 12.5px;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+/* The section number is a numeral. It does not move. */
+
+:root[data-lang='ko'] .disclosure-head,
+:root[data-lang='ko'] .text-btn {
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* Hangul needs more leading than Latin at the same size — the syllable block is
+   taller than an x-height and two lines set at 1.55 touch. */
+:root[data-lang='ko'] .note {
+  font-size: 11px;
+  line-height: 1.72;
+}
+
+:root[data-lang='ko'] .choice-options button {
+  font-size: 11px;
+  letter-spacing: -0.01em;
+}
+
+:root[data-lang='ko'] .export-btn {
+  letter-spacing: 0;
+}
