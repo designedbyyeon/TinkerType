@@ -75,9 +75,14 @@ describe('the extruded sheet', () => {
         for (const mesh of found) {
           const position = mesh.geometry.getAttribute('position')
           expect(position.count).toBeGreaterThan(0)
-          for (let i = 0; i < position.count * 3; i++) {
-            expect(Number.isFinite(position.array[i])).toBe(true)
+          // Scanned with a plain loop and asserted once. One `expect` per
+          // ordinate is the same coverage at forty times the cost — enough to
+          // push this file past the default timeout on a two-core runner.
+          let bad = -1
+          for (let i = 0; i < position.count * 3 && bad < 0; i++) {
+            if (!Number.isFinite(position.array[i])) bad = i
           }
+          expect(bad).toBe(-1)
         }
         built.dispose()
       }
