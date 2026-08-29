@@ -1,5 +1,7 @@
 # 시각예술가의 창작 도구
 
+**→ https://designedbyyeon.github.io/Tinkertype/**
+
 그래픽 디자이너가 실무에 투입할 창작 도구들을 모은 사이트. 도구마다 정밀도를
 대충 넘기지 않는다 — 폰트 메트릭, 진짜 벡터 패스, 정확한 기하.
 
@@ -20,13 +22,16 @@
 ```bash
 npm install
 npm run dev     # http://localhost:5173
-npm test        # 기하·소리 모듈 단위 테스트 (353개)
+npm test        # 기하·소리·카피 단위 테스트 (371개)
 npm run lint
 npm run build
 ```
 
-프로젝트의 목적·UI 언어·작동 원리는 `CLAUDE.md`에 있다. 이 문서는 **기능별
-설계 근거**를 다룬다.
+main에 푸시하면 `.github/workflows/deploy.yml`이 검사하고 빌드해서 GitHub Pages로
+올린다. 손으로 배포하는 단계는 없다.
+
+프로젝트의 목적·UI 언어·작동 원리·배포는 `CLAUDE.md`에 있다. 이 문서는 **기능별
+설계 근거**를 다룬다. 지금 어디까지 왔고 무엇이 열려 있는지는 `HANDOVER.md`.
 
 > **이 파일은 2026-08-28에 한 번 유실됐고 부분 복원본이다.** 문서 갱신 스크립트의
 > 역방향 슬라이스가 파일을 덮어썼다. 01·02장과 공통 구조장은 2026-08-20 시점

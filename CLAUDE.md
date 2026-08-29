@@ -405,6 +405,10 @@ src/
               styles(tokens.css=화면 색 · canvas.ts=작품 색 · controls.css)
   tools/<id>/ 그 도구만의 것 전부: geometry · render · store · types · Panel · icons
               marks · tool.css · copy.ts(그 도구가 하는 말, 두 언어)
+public/     빌드 산출물에 그대로 실리는 것 — 라이선스 원문 · tool 04의 wasm 런타임
+.github/    workflows/deploy.yml — main에 푸시되면 검사·빌드·배포 (아래 배포 절)
+0819_ref/ 0824_* 0825_* 0827_*
+            레퍼런스 이미지. 작업 폴더에는 있고 **저장소에는 없다**(`.gitignore`)
 ```
 
 `tsconfig`는 셋으로 갈라져 있다 — `app`(브라우저) · `node`(vite.config) ·
@@ -690,6 +694,14 @@ Canvas가 아니라 SVG DOM을 직접 렌더링한다. export는 그 노드를 �
   있어야 한다(`이`=2, `한`≥3). **ㅆ·ㅍ은 단정하지 않는다** — Gothic A1은 ㅆ을 붙여
   그리고 UnJamo는 떼어 그리며, ㅍ은 반대다. 둘 다 정당한 드로잉이고, 라틴 쪽에서
   "구멍 수는 세지 않는다"고 배운 것과 같은 자리다
+- **검사의 비용은 무엇을 재느냐가 아니라 어떻게 재느냐다 — 그리고 CI는 이 기계가
+  아니다.** `build.test.ts`가 KIOSK를 16번 압출해 정점 좌표를 *하나하나* `expect`로
+  단정하고 있었다. 여기서 2327ms였고 2코어 CI 러너에서는 5초 기본 타임아웃을 넘겨
+  배포가 통째로 죽었다. **비용은 기하가 아니라 `expect`였다** — 하나를 만드는 값이
+  숫자를 읽는 값의 마흔 배다. 평범한 루프로 훑어 **처음 어긋난 인덱스 하나만** 단정하니
+  58ms가 됐고, 커버리지는 같다(NaN을 심어 인덱스를 짚는 것까지 확인). **타임아웃을
+  키워서 덮지 말 것** — 그러면 진짜로 멈춘 검사가 같이 숨는다. 단정을 루프 안에 두는
+  자리는 전부 같은 함정이다.
 - **불변식이 있으면 조합 전체에 걸어라.** tool 02의 "모든 조각에 게이트가 최소
   하나"는 텍스트 5종 × 부품 단위 4종 × 런너 단위 4종 × 밀도 3종 = 240조합을 돈다.
   이 도구에서 이게 깨지면 부품이 바닥에 떨어진다.
@@ -908,3 +920,33 @@ UnJamo Dotum은 GPL-2이고(`GPL-2-UnJamoDotum.txt`), 그 뜻과 대안 없음�
 들어와 있는지는 `src/tools/magic-circle-typography/models/NOTICE.md`에 적어 뒀다.
 
 Node는 Homebrew로 설치돼 있다. PATH에 없으면 `export PATH="/opt/homebrew/bin:$PATH"`.
+
+---
+
+## 배포
+
+**작업 폴더가 곧 저장소다** — `/Users/kim/Documents/GitHub/TinkerType/Tinkertype`,
+`github.com/designedbyyeon/Tinkertype`(공개). 사이트는
+**https://designedbyyeon.github.io/Tinkertype/** 에서 돈다.
+`260820_main`은 손대지 않은 아카이브이고, 거기서 작업하면 두 벌이 갈라진다.
+
+**배포는 손으로 하는 일이 아니다.** main에 푸시되면
+`.github/workflows/deploy.yml`이 `npm ci` → `npm test` → `npm run build` →
+Pages 업로드를 한다. **테스트가 빌드 앞에 있는 것이 요점이다** — 깨진 기하나 소리
+표가 사이트에 도착하지 않는다.
+
+`vite.config.ts`의 `base: './'`가 이 배포를 이미 가능하게 해 뒀다. 자산 URL이
+상대경로라 도메인 루트에서든 `/Tinkertype/` 서브경로에서든 같은 빌드가 돈다 —
+Pages 때문에 고친 줄이 하나도 없다.
+
+**푸시는 사용자가 한다.** 터미널 git에 GitHub 자격증명이 없다(`gh` 없음 · SSH 키
+없음). 커밋까지 만들어 두고 **GitHub Desktop에서 푸시**하게 넘기는 것이 정상
+절차다. 결과는 인증 없이 확인할 수 있다 — `git log --oneline origin/main..main`,
+그리고 공개 API의 `actions/runs`. Actions 로그 본문은 로그인이 필요하지만
+**annotations는 로그인 없이 브라우저로 읽힌다**.
+
+**레퍼런스 폴더는 작업 폴더에 있고 저장소에는 없다.** `0819_ref` · `0824_*` ·
+`0825_*` · `0827_*` 전부 `.gitignore`에 걸려 있다 — 남이 만든 이미지를 공개
+저장소로 재배포할 것이 아니다. 예외는 `0819_ref/README.md` 하나, 우리가 쓴
+메모라서 따라간다. (`0827_DJ is my Type ` 은 **폴더 이름 끝에 공백이 있다.**
+git이 패턴 끝의 공백을 버리므로 `.gitignore`에서 역슬래시로 지켜 놨다.)
